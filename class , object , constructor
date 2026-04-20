@@ -1,0 +1,101 @@
+# program to print factorial of any number
+# def factorial(n):
+#     if (n==0 or n==1):
+#         return 1
+#     else:
+#         return n * factorial(n-1)
+
+# print(factorial(3))
+# print(factorial(15))
+
+# i= 0
+# while i <7:
+#     print(i)
+#     i = i+1
+#     if i  ==5:
+#       break
+# else:
+#     print("bhhh ")
+      
+      # try and except   
+# a = input("enter a number : ")
+# print(f"multiplication table of {a} is : ")
+
+# try:
+#     for i in range(0 , 11):
+#         print(f"{int(a)} x {i} = {int(a) * i}")
+
+# except:
+#     print("invalid input")
+    
+#     finally clause
+     
+# try:
+#     l =[1, 5, 6, 7]
+#     i =int(input ("Enter the index : "))
+#     print(l[i])
+    
+    
+# except:
+#     print("some error occurred")
+    
+    
+# finally:
+#     print("i am always printed")
+    
+    ## classes , objects and self
+    
+# class Person:
+#     name = "Gaurav"
+#     occupation = "banker"
+#     age = "19"
+#     def info(self):
+#         print(f"{self.name} is a {self.occupation}")
+# # self parameter is a reference to the current instance of the class and used to access variables that belong to the class . "The object for which this method is being called "
+
+# a = Person()
+# b= Person()
+# c = Person()
+# b.name = "nikita"
+# b.occupation = "girl"
+# a.name = "ranveer"
+# a.occupation= "officer"
+# # a.age = "24"
+# # print(a.name , a.occupation , a.age)
+# a.info()
+# b.info()
+# c.info()
+
+# constructor 
+class Person:
+    def __init__(self , n ,o):  #method to create a constructor
+        print("hey i am a person")
+        self.name = n
+        self.occu = o
+    
+    def info(self):
+        print(f"{self.name } is a {self.occu}")
+        
+a = Person("harry" , "developer")
+b = Person("rohan", "tester")
+a.info()
+b.info()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+      
