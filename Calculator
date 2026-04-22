@@ -1,0 +1,30 @@
+a = input("enter the value of a")
+b = input("enter the value of b")
+operator = input("enter the operator (+, - , * , / ,%, //)")
+
+a = int(a)
+b = int(b)
+
+c = None
+
+if operator == "+":
+    c=(a+b)
+elif operator == '-':
+    c=(a-b)
+elif operator == '%':
+    c=(a%b)
+elif operator == '*':
+    c=(a*b)
+elif operator == '//':
+    c=(a//b)
+elif operator == '/':
+    if b!=0:
+        print(a/b)
+    else:
+        print("Division by zero not allowed")
+else:
+    print("invalid operation")
+if c!= None: 
+    print("Calculator Successful!")
+print("The answer is ",c)
+    
