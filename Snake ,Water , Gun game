@@ -1,0 +1,28 @@
+import  random   
+
+computer = random.choice([-1 , 1 , 0])
+youstr = input("enter your choice")
+you_Dict ={"s" : 1, "w" : -1, "g" : 0}
+reverseDict ={1: "Snake ", 1 :" water", 0 : "Gun"}
+            ## reverse dictionary is used to convert the 
+you = you_Dict[youstr]
+print(f"You chose{reverseDict[you]}\nComputer chose {reverseDict[computer]}")
+
+print(f"")
+if(computer == you):
+    print("draw")
+else:
+
+    if (computer == -1 and you ==1):
+        print("you won")
+    elif (computer == -1 and you ==0):
+        print("ycomputer won")
+    elif (computer == 1 and you ==-1):
+        print("computer won")
+    elif (computer == 1 and you ==0):
+        print("you won")
+    elif (computer == 0 and you == 1):
+        print("computer won")
+    elif (computer == 0 and you == -1):
+        print("computer won")
+        
