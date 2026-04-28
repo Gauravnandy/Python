@@ -1,0 +1,24 @@
+ #create a class calculator and return square , cube and squareroot of a number
+
+# class Calculator:
+#     def __init__(self , n):
+#         self.n = n
+#     def square(self):
+#         print(f"square is {self.n*self.n}")
+#     def cube(self):
+#         print(f"cube is {self.n*self.n*self.n}")
+#     def squareroot(self):
+#         print(f"squareroot is {self.n**1/2}")
+        
+# a = Calculator(4)
+# a.square()
+# a.cube()
+# a.squareroot()
+
+### THEORY - Self in python  - It allows methods within that class to access and modify the attributes and other methods belonging to that unique object. 
+
+When you create an object (instance) from a class, self represents that specific object
+in memory. This ensures that if you have multiple objects of the same class (e.g., car1 and car2),
+each can have its own unique data.
+Mandatory First Parameter: Every instance method must include self as its first parameter 
+in its definition. For example, def my_method(self):.
