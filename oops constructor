@@ -1,0 +1,46 @@
+# class Employee:
+#     # language = "python"
+#     # salary = 100000
+            ######self parameter refers to the instance of the class , automatically passed with a function call from an object
+    
+#     def getInfo(self): # method
+#         print(f"The language is {self.language}. The salary is {self.salary}")
+#     @staticmethod
+#     def greet():  # self is used to pass the object
+#         print("good morning")
+        
+# harry = Employee()   #these are instance attribute
+# harry.language = "javascript"
+# harry.salary = "100000"
+# harry.getInfo() #,,  Employee.getInfo(harry)
+# harry.greet()
+# rohan = Employee()
+# rohan.language ="java"
+# rohan.salary= 140000
+# rohan .getInfo()
+
+## same code(things) but using constructer__init__() function (dunder method)
+
+class Employee:
+    # language = "python"
+    # salary = 100000
+    def __init__(self , name , salary , language): ####dunder method that is automatically called when an object is called
+        self.name = name
+        self.salary=salary
+        self.language=language
+        print("i am creating an object ")
+    
+    def getInfo(self): # method
+        print(f"The language is {self.language}. The salary is {self.salary}")
+    @staticmethod
+    def greet():  # self is used to pass the object
+        print("good morning")
+        
+harry = Employee("gaurav", 1300000, "python")
+print(harry.name, harry.salary, harry.language)
+# harry.language = "javascript"
+# harry.salary = "100000"
+# harry.getInfo() #,,  Employee.getInfo(harry)
+# harry.greet()
+
+
