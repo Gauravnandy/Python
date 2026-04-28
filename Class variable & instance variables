@@ -1,0 +1,18 @@
+# Class variable & instance variables
+#class programmer:
+#     company = "microsoft"  ## class variable ,inside class
+#     def __init__( self, name ,salary , pin):
+#         self.name = name      ## instance variable applicable for an object only
+#         self.salary = salary  
+#         self.pin = pin
+    
+# p = programmer("gaurav" , 2300000 , 411014)
+# print(p.name, p.salary, p.pin, p.company)
+# r = programmer("ranveer" , 1300000 , 411014)
+# print(r.name, r.salary, r.pin, r.company)
+
+/* An instance variable is a variable declared inside a class but outside any method,
+constructor, or block, representing the state of an object. Each object (instance) of 
+the class has its own copy of these variables, allowing unique data per instance.
+They are stored on the heap and differ from static (class) variables. 
+*/
