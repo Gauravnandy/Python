@@ -1,0 +1,27 @@
+## Indian Railways Basic form using constructor , methods , object, random function fron integer and string
+import random 
+class Train:
+    def __init__(self, trainNo):
+        self.trainNo = trainNo
+    def book(self, fro, to):
+        print(f"Ticket is booked in train no - {self.trainNo} from {fro} to {to}")
+    def getStatus(self):
+        print(f"Train no: {self.trainNo} is running on time ")
+
+        
+    def getFare(self, fro, to):
+        print(f"Ticket fair in train no: {self.trainNo} from {fro} to {to} is {random.randint(222, 5555)}")
+        
+    # def getCategory(self, fro ,to):
+    #      print(f"Ticket in train no - {self.trainNo}is booked in {random.choice('sleeper' , 'general' ,'AC')} ")
+    def getCategory(self, fro , to):
+        category = ["sleeper", "general", "AC"]
+        single_choice = random.choice(category)
+        print(f"Ticket in train no - {self.trainNo} is booked in {single_choice}")
+    
+        
+t = Train(12399)
+t.book("DELHI" , "BOMBAY")
+t.getStatus()
+t.getFare("DELHI", "BOMBAY")
+t.getCategory("DELHI" ,"BOMBAY")
