@@ -1,0 +1,72 @@
+################ Inheritance
+ ## single inheritance
+class Employee:
+    company ="ITC"
+    def show(self):
+        print(f" The name is {self.name} and the salary is{self.salary}")
+
+# class Programmer:
+#     company ="ITC Infotech"
+#     def show(self):
+#         print(f"the name is {self.name} and the salary is {self.salary}")
+#     def showlanguage(self):
+#         print(f"the name is {self.name} he is good with language {self.language} ")
+        
+# class Programmer(Employee):   ## Programmer is inheriting from Employee
+#     company = "ITC Infotech"
+    
+# a= Employee()
+# b = Programmer()
+# print(a.company , b.company , )
+
+    ##### Multiple Inheritance
+    
+class Employee:
+    company ="ITC"
+    name="Default name"
+    def show(self):
+        print(f"The name is {self.name} and the salary is {self.company}")
+
+class Coder:
+    language="python"
+    def printLanguages(self):
+        print(f"out of all the languages here is your language:{self.language} ")
+
+class Programmer(Employee, Coder): # programmer is inheriting from employee and coder
+    company ="ITC Infotech"
+    # def show(self):
+    #     print(f"the name is {self.name} and the salary is {self.salary}")
+    def showLanguage(self):
+        print(f"the name is {self.company} he is good with language {self.language} ")
+        
+# class Programmer(Employee):   ## Programmer is inheriting from Employee
+#     company = "ITC Infotech"
+    
+a= Employee()
+b = Programmer()
+b.show()
+b.printLanguages()
+b.showLanguage()
+
+class Employee:
+    def __init__(self):
+        print("constructor of Employee")
+    a = 1
+class Programmer(Employee):
+    def __init__(self):
+        super().__init__()
+        print("constructor of Programmer")
+    b = 2
+class Manager(Programmer):
+    def __init__(self):
+        super().__init__()  ## super()method is used to access the methods of a super class in the derived class
+        print("constructor of Manager")
+    c = 3 
+
+o = Manager()
+print(o.a, o.b, o.c)
+    
+
+
+
+
