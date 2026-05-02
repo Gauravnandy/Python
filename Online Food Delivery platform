@@ -1,0 +1,486 @@
+##### program to manage orders
+from enum import Enum
+from collections import defaultdict
+
+
+class OrderStatus(Enum):
+    PLACED = "placed"
+    PREPARING = "preparing"
+    OUT_FOR_DELIVERY = "out for delivery"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
+
+class Order:
+    def __init__(self, order_id, restaurant_id, customer_id, order_value, distance):
+        self.order_id = order_id
+        self.restaurant_id = restaurant_id
+        self.customer_id = customer_id
+        self.order_value = order_value
+        self.distance = distance
+        self.status = OrderStatus.PLACED
+
+    def update_status(self, new_status):
+        # Optional: enforce valid transitions
+        valid_transitions = {
+            OrderStatus.PLACED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+            OrderStatus.PREPARING: [OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
+            OrderStatus.OUT_FOR_DELIVERY: [OrderStatus.DELIVERED],
+            OrderStatus.DELIVERED: [],
+            OrderStatus.CANCELLED: []
+        }
+
+        if new_status in valid_transitions[self.status]:
+            self.status = new_status
+        else:
+            raise ValueError(f"Invalid transition from {self.status} to {new_status}")
+
+    def __repr__(self):
+        return f"Order({self.order_id}, Status={self.status.value})"
+
+
+class OrderManager:
+    def __init__(self):
+        self.orders = {}
+
+    def create_order(self, order_id, restaurant_id, customer_id, order_value, distance):
+        if order_id in self.orders:
+            raise ValueError("Order ID already exists")
+
+        order = Order(order_id, restaurant_id, customer_id, order_value, distance)
+        self.orders[order_id] = order
+        return order
+
+    def update_order_status(self, order_id, new_status):
+        if order_id not in self.orders:
+            raise ValueError("Order not found")
+
+        self.orders[order_id].update_status(new_status)
+
+    def get_order(self, order_id):
+        return self.orders.get(order_id)
+
+    def get_all_orders(self):
+        return list(self.orders.values())
+
+    # 📊 Statistics Methods
+    def total_orders(self):
+        return len(self.orders)
+
+    def orders_by_status(self):
+        stats = defaultdict(int)
+        for order in self.orders.values():
+            stats[order.status] += 1
+        return dict(stats)
+
+    def total_revenue(self):
+        return sum(
+            order.order_value for order in self.orders.values()
+            if order.status == OrderStatus.DELIVERED
+        )
+
+    def average_order_value(self):
+        if not self.orders:
+            return 0
+        return sum(order.order_value for order in self.orders.values()) / len(self.orders)
+
+    def orders_by_restaurant(self):
+        stats = defaultdict(int)
+        for order in self.orders.values():
+            stats[order.restaurant_id] += 1
+        return dict(stats)
+
+
+# 🚀 Example Usage
+if __name__ == "__main__":
+    manager = OrderManager()
+
+    # Create orders
+    manager.create_order(1, 101, 1001, 500, 5)
+    manager.create_order(2, 102, 1002, 300, 3)
+
+    # Update statuses
+    manager.update_order_status(1, OrderStatus.PREPARING)
+    manager.update_order_status(1, OrderStatus.OUT_FOR_DELIVERY)
+    manager.update_order_status(1, OrderStatus.DELIVERED)
+
+    manager.update_order_status(2, OrderStatus.CANCELLED)
+
+    # Print orders
+    print(manager.get_all_orders())
+
+    # Print stats
+    print("Total Orders:", manager.total_orders())
+    print("Orders by Status:", manager.orders_by_status())
+    print("Total Revenue:", manager.total_revenue())
+    print("Average Order Value:", manager.average_order_value())
+    print("Orders by Restaurant:", manager.orders_by_restaurant())
+
+from enum import Enum
+from collections import defaultdict
+
+
+# Order Status Enum
+class OrderStatus(Enum):
+    PLACED = "placed"
+    PREPARING = "preparing"
+    OUT_FOR_DELIVERY = "out_for_delivery"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
+
+# Order Class
+class Order:
+    def __init__(self, order_id, restaurant_id, customer_id, value, distance):
+        self.order_id = order_id
+        self.restaurant_id = restaurant_id
+        self.customer_id = customer_id
+        self.value = value
+        self.distance = distance
+        self.status = OrderStatus.PLACED
+
+    def update_status(self, new_status):
+        valid_flow = {
+            OrderStatus.PLACED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+            OrderStatus.PREPARING: [OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
+            OrderStatus.OUT_FOR_DELIVERY: [OrderStatus.DELIVERED],
+        }
+
+        if self.status in valid_flow and new_status in valid_flow[self.status]:
+            self.status = new_status
+        else:
+            print(f"Invalid status transition from {self.status} to {new_status}")
+
+    def is_active(self):
+        return self.status in {
+            OrderStatus.PLACED,
+            OrderStatus.PREPARING,
+            OrderStatus.OUT_FOR_DELIVERY,
+        }
+
+    def is_closed(self):
+        return self.status in {
+            OrderStatus.DELIVERED,
+            OrderStatus.CANCELLED,
+        }
+
+    def __str__(self):
+        return f"Order({self.order_id}, Status={self.status.value})"
+
+
+# Order Manager Class
+class OrderManager:
+    def __init__(self):
+        self.orders = {}
+
+    def create_order(self, order_id, restaurant_id, customer_id, value, distance):
+        if order_id in self.orders:
+            print("Order already exists!")
+            return
+
+        order = Order(order_id, restaurant_id, customer_id, value, distance)
+        self.orders[order_id] = order
+
+    def update_order_status(self, order_id, new_status):
+        if order_id not in self.orders:
+            print("Order not found!")
+            return
+
+        self.orders[order_id].update_status(new_status)
+
+    def get_order(self, order_id):
+        return self.orders.get(order_id, None)
+
+    def get_all_orders(self):
+        return list(self.orders.values())
+
+    # ---- Statistics ----
+    def get_active_orders(self):
+        return [o for o in self.orders.values() if o.is_active()]
+
+    def get_closed_orders(self):
+        return [o for o in self.orders.values() if o.is_closed()]
+
+    def total_revenue(self):
+        return sum(o.value for o in self.orders.values() if o.status == OrderStatus.DELIVERED)
+
+    def average_delivery_distance(self):
+        delivered_orders = [o for o in self.orders.values() if o.status == OrderStatus.DELIVERED]
+        if not delivered_orders:
+            return 0
+        return sum(o.distance for o in delivered_orders) / len(delivered_orders)
+
+    def orders_by_restaurant(self):
+        result = defaultdict(list)
+        for o in self.orders.values():
+            result[o.restaurant_id].append(o)
+        return result
+
+    def status_count(self):
+        count = defaultdict(int)
+        for o in self.orders.values():
+            count[o.status] += 1
+        return count
+
+
+# ---------------- TESTING ----------------
+if __name__ == "__main__":
+    manager = OrderManager()
+
+    # Create Orders
+    manager.create_order(1, 101, 201, 250, 5)
+    manager.create_order(2, 102, 202, 400, 8)
+    manager.create_order(3, 101, 203, 150, 3)
+
+    # Update statuses
+    manager.update_order_status(1, OrderStatus.PREPARING)
+    manager.update_order_status(1, OrderStatus.OUT_FOR_DELIVERY)
+    manager.update_order_status(1, OrderStatus.DELIVERED)
+
+    manager.update_order_status(2, OrderStatus.PREPARING)
+    manager.update_order_status(2, OrderStatus.CANCELLED)
+
+    manager.update_order_status(3, OrderStatus.PREPARING)
+
+    # Print all orders
+    print("\nAll Orders:")
+    for order in manager.get_all_orders():
+        print(order)
+
+    # Active Orders
+    print("\nActive Orders:")
+    for order in manager.get_active_orders():
+        print(order)
+
+    # Closed Orders
+    print("\nClosed Orders:")
+    for order in manager.get_closed_orders():
+        print(order)
+
+    # Stats
+    print("\nTotal Revenue:", manager.total_revenue())
+    print("Average Delivery Distance:", manager.average_delivery_distance())
+
+    print("\nStatus Count:")
+    for status, count in manager.status_count().items():
+        print(status.value, ":", count)
+
+######################################################################### same program with delivery class and an extra test class average_order_time
+
+from enum import Enum
+from datetime import datetime, timedelta
+from collections import defaultdict
+
+
+# ---------------- ENUM FOR ORDER STATUS ----------------
+class OrderStatus(Enum):
+    PLACED = "placed"
+    PREPARING = "preparing"
+    OUT_FOR_DELIVERY = "out_for_delivery"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
+    def is_active(self):
+        return self in {
+            OrderStatus.PLACED,
+            OrderStatus.PREPARING,
+            OrderStatus.OUT_FOR_DELIVERY
+        }
+
+    def is_closed(self):
+        return self in {
+            OrderStatus.DELIVERED,
+            OrderStatus.CANCELLED
+        }
+
+
+# ---------------- ORDER CLASS ----------------
+class Order:
+    def __init__(self, order_id, restaurant_id, customer_id, order_value, distance):
+        self.order_id = order_id
+        self.restaurant_id = restaurant_id
+        self.customer_id = customer_id
+        self.order_value = order_value
+        self.distance = distance
+        self.status = OrderStatus.PLACED
+        self.created_at = datetime.now()
+        self.updated_at = self.created_at
+
+    def update_status(self, new_status):
+        # basic validation for state transitions
+        valid_transitions = {
+            OrderStatus.PLACED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+            OrderStatus.PREPARING: [OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
+            OrderStatus.OUT_FOR_DELIVERY: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+            OrderStatus.DELIVERED: [],
+            OrderStatus.CANCELLED: []
+        }
+
+        if new_status in valid_transitions[self.status]:
+            self.status = new_status
+            self.updated_at = datetime.now()
+        else:
+            raise ValueError(f"Invalid transition from {self.status} to {new_status}")
+
+    def __repr__(self):
+        return f"<Order {self.order_id} - {self.status.value}>"
+
+
+# ---------------- DELIVERY CLASS (ADDED AFTER ORDER) ----------------
+class Delivery:
+    def __init__(self, order_id):
+        self.order_id = order_id
+        self.pickup_time = None
+        self.delivery_time = None
+
+    def mark_picked(self):
+        self.pickup_time = datetime.now()
+
+    def mark_delivered(self):
+        self.delivery_time = datetime.now()
+
+    def get_delivery_duration(self):
+        if self.pickup_time and self.delivery_time:
+            return (self.delivery_time - self.pickup_time).total_seconds()
+        return None
+
+
+# ---------------- ORDER MANAGER ----------------
+class OrderManager:
+    def __init__(self):
+        self.orders = {}
+        self.deliveries = {}
+
+    def create_order(self, order):
+        self.orders[order.order_id] = order
+
+    def update_order_status(self, order_id, status):
+        order = self.orders[order_id]
+        order.update_status(status)
+
+        # attach delivery when moving to OUT_FOR_DELIVERY
+        if status == OrderStatus.OUT_FOR_DELIVERY:
+            delivery = Delivery(order_id)
+            delivery.mark_picked()
+            self.deliveries[order_id] = delivery
+
+        # mark delivery completion
+        if status == OrderStatus.DELIVERED:
+            if order_id in self.deliveries:
+                self.deliveries[order_id].mark_delivered()
+
+    # ---------------- STATISTICS ----------------
+    def get_active_orders(self):
+        return [o for o in self.orders.values() if o.status.is_active()]
+
+    def get_closed_orders(self):
+        return [o for o in self.orders.values() if o.status.is_closed()]
+
+    def get_total_revenue(self):
+        return sum(
+            o.order_value for o in self.orders.values()
+            if o.status == OrderStatus.DELIVERED
+        )
+
+    def get_orders_by_restaurant(self, restaurant_id):
+        return [
+            o for o in self.orders.values()
+            if o.restaurant_id == restaurant_id
+        ]
+
+    def get_average_delivery_time_by_restaurant(self, restaurant_id):
+        times = []
+
+        for order in self.orders.values():
+            if order.restaurant_id == restaurant_id and order.status == OrderStatus.DELIVERED:
+                delivery = self.deliveries.get(order.order_id)
+                if delivery:
+                    duration = delivery.get_delivery_duration()
+                    if duration:
+                        times.append(duration)
+
+        if not times:
+            return 0
+
+        return sum(times) / len(times)
+
+
+# ---------------- TEST CLASS ----------------
+class TestOrderManager:
+    def run_tests(self):
+        self.test_order_flow()
+        self.test_revenue()
+        self.test_average_delivery_time()
+
+    def test_order_flow(self):
+        print("\nRunning test_order_flow...")
+
+        manager = OrderManager()
+        o1 = Order(1, 101, 201, 500, 5)
+
+        manager.create_order(o1)
+        manager.update_order_status(1, OrderStatus.PREPARING)
+        manager.update_order_status(1, OrderStatus.OUT_FOR_DELIVERY)
+        manager.update_order_status(1, OrderStatus.DELIVERED)
+
+        assert o1.status == OrderStatus.DELIVERED
+        print("test_order_flow passed")
+
+    def test_revenue(self):
+        print("\nRunning test_revenue...")
+
+        manager = OrderManager()
+        o1 = Order(1, 101, 201, 500, 5)
+        o2 = Order(2, 101, 202, 300, 3)
+
+        manager.create_order(o1)
+        manager.create_order(o2)
+
+        manager.update_order_status(1, OrderStatus.PREPARING)
+        manager.update_order_status(1, OrderStatus.OUT_FOR_DELIVERY)
+        manager.update_order_status(1, OrderStatus.DELIVERED)
+
+        manager.update_order_status(2, OrderStatus.CANCELLED)
+
+        assert manager.get_total_revenue() == 500
+        print("test_revenue passed")
+
+    # ----------- NEW TEST (AS REQUESTED) -----------
+    def test_average_delivery_time(self):
+        print("\nRunning test_average_delivery_time...")
+
+        manager = OrderManager()
+
+        o1 = Order(1, 101, 201, 500, 5)
+        o2 = Order(2, 101, 202, 300, 3)
+
+        manager.create_order(o1)
+        manager.create_order(o2)
+
+        # simulate delivery for o1
+        manager.update_order_status(1, OrderStatus.PREPARING)
+        manager.update_order_status(1, OrderStatus.OUT_FOR_DELIVERY)
+
+        # manually adjust time for realism
+        manager.deliveries[1].pickup_time -= timedelta(minutes=30)
+
+        manager.update_order_status(1, OrderStatus.DELIVERED)
+
+        # simulate delivery for o2
+        manager.update_order_status(2, OrderStatus.PREPARING)
+        manager.update_order_status(2, OrderStatus.OUT_FOR_DELIVERY)
+        manager.deliveries[2].pickup_time -= timedelta(minutes=20)
+        manager.update_order_status(2, OrderStatus.DELIVERED)
+
+        avg_time = manager.get_average_delivery_time_by_restaurant(101)
+
+        print(f"Average delivery time (seconds): {avg_time}")
+        assert avg_time > 0
+
+        print("test_average_delivery_time passed")
+
+
+# ---------------- MAIN ----------------
+if __name__ == "__main__":
+    tester = TestOrderManager()
+    tester.run_tests()
