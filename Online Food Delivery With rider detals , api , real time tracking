@@ -1,0 +1,300 @@
+from enum import Enum
+from datetime import datetime, timedelta
+from flask import Flask, request, jsonify
+import math
+import time
+import threading
+
+# ---------------- ENUM ----------------
+class OrderStatus(Enum):
+    PLACED = "placed"
+    PREPARING = "preparing"
+    OUT_FOR_DELIVERY = "out_for_delivery"
+    DELIVERED = "delivered"
+    CANCELLED = "cancelled"
+
+    def is_active(self):
+        return self in {
+            OrderStatus.PLACED,
+            OrderStatus.PREPARING,
+            OrderStatus.OUT_FOR_DELIVERY
+        }
+
+    def is_closed(self):
+        return self in {
+            OrderStatus.DELIVERED,
+            OrderStatus.CANCELLED
+        }
+
+
+# ---------------- ORDER ----------------
+class Order:
+    def __init__(self, order_id, restaurant_id, customer_id, order_value, distance):
+        self.order_id = order_id
+        self.restaurant_id = restaurant_id
+        self.customer_id = customer_id
+        self.order_value = order_value
+        self.distance = distance
+        self.status = OrderStatus.PLACED
+        self.created_at = datetime.now()
+        self.updated_at = self.created_at
+
+    def update_status(self, new_status):
+        valid_transitions = {
+            OrderStatus.PLACED: [OrderStatus.PREPARING, OrderStatus.CANCELLED],
+            OrderStatus.PREPARING: [OrderStatus.OUT_FOR_DELIVERY, OrderStatus.CANCELLED],
+            OrderStatus.OUT_FOR_DELIVERY: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
+            OrderStatus.DELIVERED: [],
+            OrderStatus.CANCELLED: []
+        }
+
+        if new_status in valid_transitions[self.status]:
+            self.status = new_status
+            self.updated_at = datetime.now()
+        else:
+            raise ValueError(f"Invalid transition {self.status} -> {new_status}")
+
+
+# ---------------- RIDER ----------------
+class Rider:
+    def __init__(self, rider_id, location):
+        self.rider_id = rider_id
+        self.location = location  # (x, y)
+        self.available = True
+
+    def assign(self):
+        self.available = False
+
+    def complete(self):
+        self.available = True
+
+    def distance_to(self, restaurant_location):
+        return math.sqrt(
+            (self.location[0] - restaurant_location[0]) ** 2 +
+            (self.location[1] - restaurant_location[1]) ** 2
+        )
+
+
+# ---------------- DELIVERY ----------------
+class Delivery:
+    def __init__(self, order_id):
+        self.order_id = order_id
+        self.rider = None
+        self.pickup_time = None
+        self.delivery_time = None
+        self.current_location = None
+
+    def assign_rider(self, rider):
+        self.rider = rider
+        rider.assign()
+
+    def mark_picked(self):
+        self.pickup_time = datetime.now()
+
+    def mark_delivered(self):
+        self.delivery_time = datetime.now()
+        if self.rider:
+            self.rider.complete()
+
+    def update_location(self, location):
+        self.current_location = location
+
+    def get_delivery_duration(self):
+        if self.pickup_time and self.delivery_time:
+            return (self.delivery_time - self.pickup_time).total_seconds()
+        return None
+
+
+# ---------------- ORDER MANAGER ----------------
+class OrderManager:
+    def __init__(self):
+        self.orders = {}
+        self.deliveries = {}
+        self.riders = []
+
+    # ---- Order Ops ----
+    def create_order(self, order):
+        self.orders[order.order_id] = order
+
+    def update_order_status(self, order_id, status):
+        order = self.orders[order_id]
+        order.update_status(status)
+
+        if status == OrderStatus.OUT_FOR_DELIVERY:
+            rider = self.assign_rider((0, 0))  # mock restaurant location
+
+            delivery = Delivery(order_id)
+            if rider:
+                delivery.assign_rider(rider)
+
+            delivery.mark_picked()
+            self.deliveries[order_id] = delivery
+
+            # start tracking in background
+            threading.Thread(
+                target=self.simulate_tracking,
+                args=(order_id,),
+                daemon=True
+            ).start()
+
+        if status == OrderStatus.DELIVERED:
+            if order_id in self.deliveries:
+                self.deliveries[order_id].mark_delivered()
+
+    # ---- Rider Ops ----
+    def add_rider(self, rider):
+        self.riders.append(rider)
+
+    def assign_rider(self, restaurant_location):
+        available = [r for r in self.riders if r.available]
+        if not available:
+            return None
+
+        return min(available, key=lambda r: r.distance_to(restaurant_location))
+
+    # ---- Tracking ----
+    def simulate_tracking(self, order_id):
+        delivery = self.deliveries.get(order_id)
+        if not delivery:
+            return
+
+        path = [(0,0), (2,2), (4,4), (6,6), (8,8), (10,10)]
+
+        for loc in path:
+            delivery.update_location(loc)
+            time.sleep(1)
+
+    # ---- Stats ----
+    def get_total_revenue(self):
+        return sum(
+            o.order_value for o in self.orders.values()
+            if o.status == OrderStatus.DELIVERED
+        )
+
+    def get_average_delivery_time_by_restaurant(self, restaurant_id):
+        times = []
+
+        for order in self.orders.values():
+            if order.restaurant_id == restaurant_id and order.status == OrderStatus.DELIVERED:
+                delivery = self.deliveries.get(order.order_id)
+                if delivery:
+                    t = delivery.get_delivery_duration()
+                    if t:
+                        times.append(t)
+
+        return sum(times) / len(times) if times else 0
+
+
+# ---------------- TEST CLASS ----------------
+class TestOrderManager:
+    def run(self):
+        self.test_avg_delivery_time()
+
+    def test_avg_delivery_time(self):
+        print("\nRunning test_avg_delivery_time")
+
+        m = OrderManager()
+
+        m.add_rider(Rider(1, (1,1)))
+        m.add_rider(Rider(2, (5,5)))
+
+        o1 = Order(1, 101, 201, 500, 5)
+        o2 = Order(2, 101, 202, 300, 3)
+
+        m.create_order(o1)
+        m.create_order(o2)
+
+        # simulate
+        m.update_order_status(1, OrderStatus.PREPARING)
+        m.update_order_status(1, OrderStatus.OUT_FOR_DELIVERY)
+        m.deliveries[1].pickup_time -= timedelta(minutes=30)
+        m.update_order_status(1, OrderStatus.DELIVERED)
+
+        m.update_order_status(2, OrderStatus.PREPARING)
+        m.update_order_status(2, OrderStatus.OUT_FOR_DELIVERY)
+        m.deliveries[2].pickup_time -= timedelta(minutes=20)
+        m.update_order_status(2, OrderStatus.DELIVERED)
+
+        avg = m.get_average_delivery_time_by_restaurant(101)
+        print("Average Delivery Time:", avg)
+
+
+# ---------------- FLASK API ----------------
+app = Flask(__name__)
+manager = OrderManager()
+
+# preload riders
+manager.add_rider(Rider(1, (1,1)))
+manager.add_rider(Rider(2, (5,5)))
+
+
+@app.route("/order", methods=["POST"])
+def create_order():
+    data = request.json
+
+    order = Order(
+        data["order_id"],
+        data["restaurant_id"],
+        data["customer_id"],
+        data["order_value"],
+        data["distance"]
+    )
+
+    manager.create_order(order)
+    return jsonify({"message": "Order created"})
+
+
+@app.route("/order/<int:order_id>/status", methods=["PUT"])
+def update_status(order_id):
+    data = request.json
+    status = OrderStatus(data["status"])
+
+    manager.update_order_status(order_id, status)
+    return jsonify({"message": "Status updated"})
+
+
+@app.route("/order/<int:order_id>", methods=["GET"])
+def get_order(order_id):
+    order = manager.orders.get(order_id)
+
+    if not order:
+        return jsonify({"error": "Not found"}), 404
+
+    return jsonify({
+        "order_id": order.order_id,
+        "status": order.status.value
+    })
+
+
+@app.route("/order/<int:order_id>/track", methods=["GET"])
+def track_order(order_id):
+    delivery = manager.deliveries.get(order_id)
+
+    if not delivery:
+        return jsonify({"error": "No delivery"}), 404
+
+    return jsonify({
+        "location": delivery.current_location,
+        "rider": delivery.rider.rider_id if delivery.rider else None
+    })
+
+
+@app.route("/stats/revenue", methods=["GET"])
+def revenue():
+    return jsonify({"revenue": manager.get_total_revenue()})
+
+
+@app.route("/stats/avg-time/<int:restaurant_id>", methods=["GET"])
+def avg_time(restaurant_id):
+    return jsonify({
+        "avg_delivery_time": manager.get_average_delivery_time_by_restaurant(restaurant_id)
+    })
+
+
+# ---------------- MAIN ----------------
+if __name__ == "__main__":
+    # run tests
+    TestOrderManager().run()
+
+    # start API
+    app.run(debug=True)
